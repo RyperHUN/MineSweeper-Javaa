@@ -34,21 +34,20 @@ public class DrawerField extends JFrame{
 	{
 		super("MineSweeper");
 		_FIELD = new Field();
+		_height = 9;
+		_width = 9;
+		_mineNum = 10;
+
 		constructorInit();
 	}
 	public void constructorInit()
 	{
 //		File serializedFile = new File("saveDefault.ryp");
 //		boolean isSerialized = serializedFile.exists();
-		_height = 9;
-		_width = 9;
-		_mineNum = 10;
 		startTime = System.currentTimeMillis();
 
 		_FIELD.initConsole(_height,_width,_mineNum);
-		_field = _FIELD.getField();
-		_hidden = _FIELD.getHidden();
-		_isShowed = _FIELD.getIsShowed();
+		loadField();
 		
 		_buttons = new FieldButton[_height][_width];  // hidden meretut hoz letre
 		_isMouseEventEnabled = true;
@@ -272,51 +271,13 @@ public class DrawerField extends JFrame{
 		return _isMouseEventEnabled;
 	}
 
+
 	void restart()  //Folytatni
 	{
-		_FIELD.initConsole(_height,_width,_mineNum);
-		loadField();
-
-
-		_isMouseEventEnabled = true;
 		remove(fieldPanel);
 		remove(smilePanel);
 		remove(borderDrawer);
-		fieldPanel = new JPanel();
-		smilePanel = new JPanel();
-		startTime = System.currentTimeMillis();
-		_buttons = new FieldButton[_height][_width];  // hidden meretut hoz letre
-		
-		int fieldSizeWidth = (_width)*20;
-		int fieldSizeHeight = (_height)*20; // Magic size
-		fieldPanel.setSize(fieldSizeWidth,fieldSizeHeight); // 20x20 os meretu a kep
-		fieldPanel.setLocation(15, 70);
-		fieldPanel.setLayout(new GridLayout(_height,_width)); // ide majd megfelelo meret
-		int fullWindowWidth = fieldSizeWidth+50;
-		int fullWindowHeight = fieldSizeHeight+157;
-
-		restartButton = new RestartButton(this);
-		smilePanel.setSize(34,34);					// Ha ezt nem irom ide akkor megse jelenik a kep
-		smilePanel.add(restartButton);
-		smilePanel.setLayout(new GridLayout(1,1));  // Ha ezt nem irom ide akkor egy magikus keretet hoz letre a gomb korul WTF?
-		smilePanel.setLocation((int)fullWindowWidth/2-(34/2),20);
-
-				
-		for(int i = 0; i < _height; i++)
-		{
-			for(int j = 0; j < _width ; j++)
-			{
-				_buttons[i][j] = new FieldButton(_hidden[i][j],true,i,j,this);
-				fieldPanel.add(_buttons[i][j]);
-			}
-		}
-
-		add(fieldPanel);
-		add(smilePanel);
-		borderDrawer = new BorderDrawer(_width,_height,_mineNum);
-		borderDrawer.startTimer();
-		add(borderDrawer);
-		
+		constructorInit();
 		
 		repaint();
 		setVisible(true);
