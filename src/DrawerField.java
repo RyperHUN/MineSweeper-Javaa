@@ -277,7 +277,7 @@ public class DrawerField extends JFrame{
 		_FIELD.initConsole(_height,_width,_mineNum);
 		loadField();
 
-		
+
 		_isMouseEventEnabled = true;
 		remove(fieldPanel);
 		remove(smilePanel);
