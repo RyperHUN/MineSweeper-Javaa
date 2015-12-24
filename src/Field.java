@@ -16,7 +16,8 @@ public class Field implements Serializable {
 	int getWidth() { return _width; }
 	int getHeight() { return _height; }
 	Field()
-	{	
+	{
+
 	}
 	void initConsole(int height,int width,int mineNum)
 	{

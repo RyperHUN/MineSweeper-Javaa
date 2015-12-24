@@ -7,7 +7,7 @@ import java.io.ObjectOutputStream;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-//TODO SZERIALIZALASNAL FLAGAKET NEM TOLTI VISSZA
+
 //TODO SZERIALIZALASNAL 0 R�L INDUL AZ IDO LEHET CSALNI
 
 public class DrawerField extends JFrame{
@@ -29,6 +29,7 @@ public class DrawerField extends JFrame{
 	protected String difficulty = "Beginner";
 //	Timer timer; // Ez egy ido mero lesz
 	long startTime,endTime;
+	boolean _isLeaderBoard; // true if the score is valid, false if serialized
 
 	public DrawerField() // TODO megcsinalni hogy lehessen allitani a meretet a palyanak
 	{
@@ -38,15 +39,25 @@ public class DrawerField extends JFrame{
 		_width = 9;
 		_mineNum = 10;
 
-		constructorInit();
+		constructorInit(false);
 	}
-	public void constructorInit()
+	public void constructorInit(boolean isSerialized)
 	{
 //		File serializedFile = new File("saveDefault.ryp");
 //		boolean isSerialized = serializedFile.exists();
+
+
+		if(isSerialized) // Ha nem szerializalunk akkor letrehoz egy uj Fieldet
+		{
+			_isLeaderBoard = false;
+		}
+		else
+		{
+			_isLeaderBoard = true;
+			_FIELD.initConsole(_height, _width, _mineNum);
+		}
 		startTime = System.currentTimeMillis();
 
-		_FIELD.initConsole(_height,_width,_mineNum);
 		loadField();
 		
 		_buttons = new FieldButton[_height][_width];  // hidden meretut hoz letre
@@ -76,7 +87,14 @@ public class DrawerField extends JFrame{
 		{
 			for(int j = 0; j < _width ; j++)
 			{
-				_buttons[i][j] = new FieldButton(_hidden[i][j],true,i,j,this);
+				if(!isSerialized)
+				{	//Igy alapbol minden mezo rejtett
+					_buttons[i][j] = new FieldButton(_hidden[i][j], true, i, j, this);
+				}
+				else
+				{	// Igy hozzaadja hogy megvolt e nyitva az adott mezo a gombokhoz
+					_buttons[i][j] = new FieldButton(_hidden[i][j],!_isShowed[i][j],i,j,this);
+				}
 				fieldPanel.add(_buttons[i][j]);
 			}
 		}
@@ -246,7 +264,14 @@ public class DrawerField extends JFrame{
 		borderDrawer.stopTimer();
 		_isMouseEventEnabled = false;
 //		System.out.println("Idod:" + getTime() + "ms");
-		new LeaderBoard(difficulty,getTime());
+		if(_isLeaderBoard)
+		{
+			new LeaderBoard(difficulty, getTime());
+		}
+		else
+		{
+			new LeaderBoard(null, 0);
+		}
 	}
 	void gameOver()
 	{
@@ -271,13 +296,12 @@ public class DrawerField extends JFrame{
 		return _isMouseEventEnabled;
 	}
 
-
 	void restart()  //Folytatni
 	{
 		remove(fieldPanel);
 		remove(smilePanel);
 		remove(borderDrawer);
-		constructorInit();
+		constructorInit(false);
 
 		repaint();
 		setVisible(true);
@@ -299,7 +323,7 @@ public class DrawerField extends JFrame{
 		remove(smilePanel);
 		remove(borderDrawer);
 
-		constructorInit();
+		constructorInit(false);
 		
 		setVisible(true);
 		repaint();
@@ -336,58 +360,13 @@ public class DrawerField extends JFrame{
 			ObjectInputStream loader = new ObjectInputStream(new FileInputStream("saveDefault.txt"));
 			_FIELD =  (Field)loader.readObject();
 			loader.close();
-			loadField(); // Betolti _FIELD bol az adatokat
-			startTime = System.currentTimeMillis(); // Timer 0 rol indul ami nem jo
-//			this.removeAll();
-			_isMouseEventEnabled = true;
 			remove(fieldPanel);
 			remove(smilePanel);
 			remove(borderDrawer);
-			
-			_buttons = new FieldButton[_height][_width];  // hidden meretut hoz letre
-			fieldPanel = new JPanel();
-			smilePanel = new JPanel();
-			//INITS
-			int fieldSizeWidth = (_width)*20;
-			int fieldSizeHeight = (_height)*20; // Magic size
-			fieldPanel.setSize(fieldSizeWidth,fieldSizeHeight); // 20x20 os meretu a kep
-			fieldPanel.setLocation(15, 70);
-			fieldPanel.setLayout(new GridLayout(_width,_height)); // ide majd megfelelo meret
-			int fullWindowWidth = fieldSizeWidth+36;
-			int fullWindowHeight = fieldSizeHeight+142;
-			setSize(fullWindowWidth,fullWindowHeight);
-//			setResizable(false);
-			setDefaultCloseOperation(EXIT_ON_CLOSE);
+			loadField(); // Betolti _FIELD bol az adatokat
 
-			restartButton = new RestartButton(this);
-			smilePanel.setSize(34,34);					// Ha ezt nem irom ide akkor megse jelenik a kep
-			smilePanel.add(restartButton);
-			smilePanel.setLayout(new GridLayout(1,1));  // Ha ezt nem irom ide akkor egy magikus keretet hoz letre a gomb korul WTF?
-			smilePanel.setLocation((int)fullWindowWidth/2-(34/2),20);
-			///INITIALS
-					
-			for(int i = 0; i < _height; i++)
-			{
-				for(int j = 0; j < _width ; j++)
-				{
-						_buttons[i][j] = new FieldButton(_hidden[i][j],!_isShowed[i][j],i,j,this);
-						fieldPanel.add(_buttons[i][j]);
-				}
-			}
-//			TODO Hogy rajzoljam ki tobbszor a timert
-//			GraphicTimer graphicTimer = new GraphicTimer();
-//			timer = new Timer();
-//			timer.schedule(new TimerLogic(graphicTimer),0, 1);  //ennek atkell majd adni valami osztalyt ami megvalositja a TimerTask osztalyt es van run metodusa amit futtat a timer
-			
-			add(fieldPanel);
-			add(smilePanel);
-			borderDrawer = new BorderDrawer(_width,_height,_mineNum);
+			constructorInit(true);
 
-			borderDrawer.startTimer();
-			add(borderDrawer);
-			MenuBar menuBar = new MenuBar(this);
-			setJMenuBar(menuBar);
-			
 			repaint();
 			setVisible(true);
 		} 
